@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "dotenv": "^16.0.2",
+    "hyper-express": "^6.4.5",
+    "joi": "^17.6.0",
+    "node-unifi": "^2.1.0",
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.10.0"
+  }
+}
