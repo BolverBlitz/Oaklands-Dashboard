@@ -11,17 +11,6 @@ const [Unifi_Url, Unifi_Port, Unifi_Email, Unifi_Password] = [process.env.Unifi_
 
 const unifi = new Unifi.Controller({ host: Unifi_Url, port: Unifi_Port, sslverify: false });
 
-// Login into UNIFI Controller
-(async () => {
-  try {
-    // LOGIN
-    const loginData = await unifi.login(Unifi_Email, Unifi_Password);
-    log.info(`Logged into UNIFI Controller: ${loginData}`);
-  } catch (error) {
-    console.log('ERROR: ' + error);
-  }
-})();
-
 /* Input Schema */
 const genCodeSchema = joi.object({
   duration: joi.number().min(1).max(7).required(),
@@ -44,8 +33,11 @@ app.get('/logo', (req, res) => {
 app.get('/genCode', async (req, res) => {
   const value = await genCodeSchema.validateAsync(req.query);
   try {
+    const loginData = await unifi.login(Unifi_Email, Unifi_Password);
+    log.info(`Logged into UNIFI Controller: ${loginData}`);
     const VoucherTime = await unifi.createVouchers(value.duration * (24 * 60), 1, 1, null, value.upload * 1000, value.download * 1000, null)
     const Voucher = await unifi.getVouchers(VoucherTime[0].create_time);
+    await unifi.logout();
     res.header('Content-Type', 'application/json');
     res.status(200);
     res.send(JSON.stringify(Voucher[0]));
