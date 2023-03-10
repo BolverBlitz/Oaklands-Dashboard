@@ -51,6 +51,17 @@ app.get('/cpuload', (req, res) => {
   res.send("Hello");
 });
 
+app.ws('/ros', {
+  idle_timeout: 60
+}, (ws) => {
+  ws.on('message', (msg) => {
+    console.log(msg);
+  });
+
+  ws.on('open', () => log.info('Connection opened'));
+  ws.on('close', () => log.info('Connection closed'));
+});
+
 /* Handlers */
 app.set_error_handler((req, res, error) => {
   let statusCode = res.statusCode !== 200 ? res.statusCode : 500;
