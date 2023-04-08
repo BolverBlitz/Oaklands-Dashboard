@@ -5,7 +5,14 @@ const HyperExpress = require('hyper-express');
 const app = new HyperExpress.Server();
 const joi = require('joi');
 const Unifi = require('node-unifi');
+const RouterOSInterface = require('../lib/routerOS');
 const { log } = require('../lib/logger');
+
+const ros = new RouterOSInterface(
+  process.env.RouterOS_IP || '192.168.88.1',
+  process.env.RouterOS_User || 'admin',
+  process.env.RouterOS_Password || '',
+);
 
 const [Unifi_Url, Unifi_Port, Unifi_Email, Unifi_Password] = [process.env.Unifi_URL, process.env.Unifi_Port, process.env.Unifi_Email, process.env.Unifi_Password];
 
@@ -51,15 +58,40 @@ app.get('/cpuload', (req, res) => {
   res.send("Hello");
 });
 
-app.ws('/ros', {
+/*
+{
+  "com": "subscribe_rosTraffic",
+  "payload": "Hello World"
+}
+*/
+app.ws('/realtime', {
   idle_timeout: 60
 }, (ws) => {
   ws.on('message', (msg) => {
     console.log(msg);
-  });
+    const { com, payload } = JSON.parse(msg);
+    // Subscribe to ROS Traffic
+    if (com === 'subscribe_rosTraffic') {
+      ros.getInterfaceList().then((interfaces) => {
+        const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && interface.type === 'ether' });
+        for (let i = 0; i < activeEthInterfaces.length; i++) {
+          ros.getInterfaceStats(activeEthInterfaces[i].name, ws).then((wasclosed) => {
+            if (wasclosed) {
+              log.info('rosTraffic: connection closed');
+            }
+          }).catch((error) => {
+            log.error(error);
+          });
+        }
+      }).catch((error) => {
+        log.error(error);
+      });
+    }
 
-  ws.on('open', () => log.info('Connection opened'));
-  ws.on('close', () => log.info('Connection closed'));
+    // Subscribe to Docker Stats
+  });
+  ws.on('open', () => log.info('WS: Connection opened'));
+  ws.on('close', () => log.info('WS: yConnection closed'));
 });
 
 /* Handlers */
@@ -72,7 +104,7 @@ app.set_error_handler((req, res, error) => {
   }
 
   /* Returns 500 if there was a problem communicating to Unifi Controler*/
-  if(error.name === "UnifiError") {
+  if (error.name === "UnifiError") {
     statusCode = 500;
   }
 
