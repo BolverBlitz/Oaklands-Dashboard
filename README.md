@@ -9,7 +9,7 @@
 - [X] Link List
 - [X] Generate Unifi Guest Wifi
 - [ ] Show host statistics
-- [ ] Show Mikrotik statistics
+- [X] Show Mikrotik statistics
 - [ ] Show docker statistics
 
 # Installation
