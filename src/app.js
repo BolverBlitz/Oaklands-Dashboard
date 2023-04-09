@@ -29,6 +29,11 @@ app.get('/', (req, res) => {
   res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', 'index.html')));
 })
 
+app.get('/js/*', (req, res) => {
+  if (req.url.endsWith('.js')) { res.header('Content-Type', 'text/javascript'); } else { res.header('Content-Type', 'text/css'); }
+  res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', req.url)));
+})
+
 app.get('/logo', (req, res) => {
   res.header('Content-Type', 'image/png');
   res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', 'logo.png')));
@@ -68,7 +73,7 @@ app.ws('/realtime', {
   idle_timeout: 60
 }, (ws) => {
   ws.on('message', (msg) => {
-    console.log(msg);
+    //console.log(msg);
     const { com, payload } = JSON.parse(msg);
     // Subscribe to ROS Traffic
     if (com === 'subscribe_rosTraffic') {
@@ -76,8 +81,11 @@ app.ws('/realtime', {
         const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && interface.type === 'ether' });
         for (let i = 0; i < activeEthInterfaces.length; i++) {
           ros.getInterfaceStats(activeEthInterfaces[i].name, ws).then((wasclosed) => {
-            if (wasclosed) {
-              log.info('rosTraffic: connection closed');
+            // true is returned once the connection was closed. If error occured, error is returned
+            if (wasclosed === true) {
+              log.info('rosTraffic: Connection closed');
+            } else {
+              log.error(wasclosed)
             }
           }).catch((error) => {
             log.error(error);
@@ -91,7 +99,7 @@ app.ws('/realtime', {
     // Subscribe to Docker Stats
   });
   ws.on('open', () => log.info('WS: Connection opened'));
-  ws.on('close', () => log.info('WS: yConnection closed'));
+  ws.on('close', () => log.info('WS: Connection closed'));
 });
 
 /* Handlers */
