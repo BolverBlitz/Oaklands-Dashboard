@@ -1,9 +1,12 @@
 <head>
   <title>Oaklands Dashboard</title>
+  <script ype="text/javascript" src="./js/smoothie.js"></script>
   <style>
     body {
       background-color: #21361d;
     }
+
+    /* Flexbox */
     .flex-container {
       display: flex;
       margin-top: 4%;
@@ -13,7 +16,6 @@
       align-items: center;
       align-content: center;
     }
-
     .flex-container2 {
         display: flex;
         flex-direction: row;
@@ -22,7 +24,6 @@
         align-items: center;
         align-content: center;
     }
-
     .flex-items:nth-child(1) {
       display: block;
       flex-grow: 0;
@@ -31,7 +32,6 @@
       align-self: auto;
       order: 0;
     }
-
     .flex-items:nth-child(2) {
       display: block;
       flex-grow: 0;
@@ -40,7 +40,6 @@
       align-self: auto;
       order: 0;
     }
-
     .flex-items:nth-child(3) {
       display: block;
       flex-grow: 0;
@@ -49,7 +48,6 @@
       align-self: auto;
       order: 0;
     }
-
     .flex-items:nth-child(4) {
       display: block;
       flex-grow: 0;
@@ -58,7 +56,6 @@
       align-self: auto;
       order: 0;
     }
-
     .flex-items:nth-child(5) {
       display: block;
       flex-grow: 0;
@@ -67,7 +64,6 @@
       align-self: auto;
       order: 0;
     }
-
     .buttonList {
         background-color: #4CAF50; /* Green */
         border: none;
@@ -78,13 +74,12 @@
         display: inline-block;
         font-size: 16px;
     }
-
     .buttonList:hover {
         cursor: pointer;
         background-color: rgb(59, 92, 61);
     }
 
-     /* Dropdown Button */
+    /* Dropdown Button */
     .dropbtn {
       background-color: #04AA6D;
       color: white;
@@ -92,7 +87,6 @@
       font-size: 16px;
       border: none;
     }
-
     .select-wrapper {
         position: relative;
         user-select: none;
@@ -122,6 +116,17 @@
         border-width: 2px 0 2px 0;
         border-style: solid;
         border-color: #394a6d;
+    }
+
+    /* Smoothie Charts */
+    div.smoothie-chart-tooltip {
+      background: #444;
+      padding: 1em;
+      margin-top: 20px;
+      font-family: consolas;
+      color: white;
+      font-size: 10px;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -172,11 +177,42 @@
   <div style="margin-top: 8px; font-size: 32px; color: #04AA6D;" class="flex-items"> <!-- Vertical Flex Item 4 - Div where the WiFi Code will be displayed --->
     <a id="unifi_code_response"></a>
   </div>
+  <div class="flex-items"> <!-- Vertical Flex Item 1 - Logo --->
+    <p style="color:rgb(255, 255, 255)">Network usage (in mbit/s):</p>
+    <canvas id="chart" width="1200" height="400"></canvas>
+  </div>
 </div>
 
 <script>
   const getUrl = window.location;
   const baseUrl = getUrl.protocol + "//" + getUrl.host + "/";
+
+  const global = {
+    rosInterfaces: [], // Holds all interfaces brodcasted by ROS
+    rosInterfacesData: {}, // Holds all interfaces data brodcasted by ROS
+  }
+
+  const rosChartColor = {
+    "ether1_WAN - Upload": "rgba(255, 255, 255, 0.5)",
+    "ether1_WAN - Download": "rgba(255, 255, 255, 1)",
+    "ether10 - AP Annex - Upload": "rgba(255, 0, 0, 0.5)",
+    "ether10 - AP Annex - Download": "rgba(255, 0, 0, 1)",
+    "ether7 - APLivingRoom - Upload": "rgba(255, 255, 0, 0.5)",
+    "ether7 - APLivingRoom - Download": "rgba(255, 255, 0, 1)",
+    "ether8 - AP Sunroom - Upload": "rgba(249, 105, 14, 0.5)",
+    "ether8 - AP Sunroom - Download": "rgba(249, 105, 14, 1)",
+    "ether6 - RaspberyPI - Upload": "rgba(153, 50, 204, 0.5)",
+    "ether6 - RaspberyPI - Download": "rgba(153, 50, 204, 1)",
+    "ether9 - Ciaran - Upload": "rgba(0, 158, 255, 0.5)",
+    "ether9 - Ciaran - Download": "rgba(0, 158, 255, 1)",
+  }
+
+  function replaceWAN(name) {
+    if (name.toLowerCase().includes('wan')){
+      return 'Internet';
+    }
+    return name;
+  }
 
   // Make Webrequests
   function httpGet(theUrl) {
@@ -207,4 +243,74 @@
         break;
     }
   }
+
+  // Find the canvas
+  const canvas = document.getElementById('chart');
+  // Create the chart
+  const chart = new SmoothieChart({millisPerPixel:50, grid:{fillStyle:'transparent', strokeStyle:'rgba(119,119,119,0.20)'}, tooltip:true, tooltipLine:{strokeStyle:'#bbbbbb'}});
+  chart.streamTo(canvas, 1100);
+
+  let ws_protocol = "ws://";
+  if (window.location.protocol === "https:") {
+    ws_protocol = "wss://";
+  }
+  const ws = new WebSocket(ws_protocol + window.location.host + "/realtime");
+
+  ws.onopen = function() {
+    ws.send(JSON.stringify({"com": "subscribe_rosTraffic","payload": ""}));
+  };
+
+  ws.onmessage = function(event) {
+    const { com, payload } = JSON.parse(event.data);
+    switch (com) {
+      case "traffic":
+        if(!global.rosInterfaces.includes(payload.name)) {
+          global.rosInterfaces.push(payload.name);
+          const lineDOWN = new TimeSeries();
+          const lineUP = new TimeSeries();
+          global.rosInterfacesData[`${payload.name} - Download`] = lineDOWN;
+          global.rosInterfacesData[`${payload.name} - Upload`] = lineUP;
+          chart.addTimeSeries(global.rosInterfacesData[`${payload.name} - Download`], { strokeStyle: rosChartColor[`${payload.name} - Download`], tooltipLabel: `D: ${replaceWAN(payload.name)}` });
+          chart.addTimeSeries(global.rosInterfacesData[`${payload.name} - Upload`], { strokeStyle: rosChartColor[`${payload.name} - Upload`], fillStyle:'rgba(0,0,0,0.10)', tooltipLabel: `U: ${replaceWAN(payload.name)}` });
+
+          // Order the interfaces by alphabetical order but ignore first 3 chars in chart.seriesSet[0].options.tooltipLabe.
+          // Put RaspberyPI and Ciaran at the end of the list
+          // Put Internet at the top of the list
+          chart.seriesSet.sort((a, b) => {
+            if (a.options.tooltipLabel.substring(3) === 'Internet') {
+              return -1;
+            }
+            if (b.options.tooltipLabel.substring(3) === 'Internet') {
+              return 1;
+            }
+            if (a.options.tooltipLabel.substring(3) === 'RaspberyPI') {
+              return 1;
+            }
+            if (b.options.tooltipLabel.substring(3) === 'RaspberyPI') {
+              return -1;
+            }
+            if (a.options.tooltipLabel.substring(3) === 'Ciaran') {
+              return 1;
+            }
+            if (b.options.tooltipLabel.substring(3) === 'Ciaran') {
+              return -1;
+            }
+            return a.options.tooltipLabel.substring(3) > b.options.tooltipLabel.substring(3) ? 1 : -1;
+          });
+          
+        }
+        if(replaceWAN(payload.name) === 'Internet') {
+          global.rosInterfacesData[`${payload.name} - Download`].append(Date.now(), (Number(payload["rx-bits-per-second"]))/(1000*1000));
+          global.rosInterfacesData[`${payload.name} - Upload`].append(Date.now(), (Number(payload["tx-bits-per-second"]))/(1000*1000));
+        } else {
+          global.rosInterfacesData[`${payload.name} - Download`].append(Date.now(), (Number(payload["tx-bits-per-second"]))/(1000*1000));
+          global.rosInterfacesData[`${payload.name} - Upload`].append(Date.now(), (Number(payload["rx-bits-per-second"]))/(1000*1000));
+        }
+        
+        break;
+      default:
+        console.log("Unknown message com: " + com);
+        break;
+    }
+  };
 </script>

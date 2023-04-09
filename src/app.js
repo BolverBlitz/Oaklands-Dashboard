@@ -5,7 +5,14 @@ const HyperExpress = require('hyper-express');
 const app = new HyperExpress.Server();
 const joi = require('joi');
 const Unifi = require('node-unifi');
+const RouterOSInterface = require('../lib/routerOS');
 const { log } = require('../lib/logger');
+
+const ros = new RouterOSInterface(
+  process.env.RouterOS_IP || '192.168.88.1',
+  process.env.RouterOS_User || 'admin',
+  process.env.RouterOS_Password || '',
+);
 
 const [Unifi_Url, Unifi_Port, Unifi_Email, Unifi_Password] = [process.env.Unifi_URL, process.env.Unifi_Port, process.env.Unifi_Email, process.env.Unifi_Password];
 
@@ -20,6 +27,11 @@ const genCodeSchema = joi.object({
 app.get('/', (req, res) => {
   res.header('Content-Type', 'text/html');
   res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', 'index.html')));
+})
+
+app.get('/js/*', (req, res) => {
+  if (req.url.endsWith('.js')) { res.header('Content-Type', 'text/javascript'); } else { res.header('Content-Type', 'text/css'); }
+  res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', req.url)));
 })
 
 app.get('/logo', (req, res) => {
@@ -51,6 +63,45 @@ app.get('/cpuload', (req, res) => {
   res.send("Hello");
 });
 
+/*
+{
+  "com": "subscribe_rosTraffic",
+  "payload": "Hello World"
+}
+*/
+app.ws('/realtime', {
+  idle_timeout: 60
+}, (ws) => {
+  ws.on('message', (msg) => {
+    //console.log(msg);
+    const { com, payload } = JSON.parse(msg);
+    // Subscribe to ROS Traffic
+    if (com === 'subscribe_rosTraffic') {
+      ros.getInterfaceList().then((interfaces) => {
+        const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && interface.type === 'ether' });
+        for (let i = 0; i < activeEthInterfaces.length; i++) {
+          ros.getInterfaceStats(activeEthInterfaces[i].name, ws).then((wasclosed) => {
+            // true is returned once the connection was closed. If error occured, error is returned
+            if (wasclosed === true) {
+              log.info('rosTraffic: Connection closed');
+            } else {
+              log.error(wasclosed)
+            }
+          }).catch((error) => {
+            log.error(error);
+          });
+        }
+      }).catch((error) => {
+        log.error(error);
+      });
+    }
+
+    // Subscribe to Docker Stats
+  });
+  ws.on('open', () => log.info('WS: Connection opened'));
+  ws.on('close', () => log.info('WS: Connection closed'));
+});
+
 /* Handlers */
 app.set_error_handler((req, res, error) => {
   let statusCode = res.statusCode !== 200 ? res.statusCode : 500;
@@ -61,7 +112,7 @@ app.set_error_handler((req, res, error) => {
   }
 
   /* Returns 500 if there was a problem communicating to Unifi Controler*/
-  if(error.name === "UnifiError") {
+  if (error.name === "UnifiError") {
     statusCode = 500;
   }
 
