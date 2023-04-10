@@ -190,6 +190,8 @@
   const global = {
     rosInterfaces: [], // Holds all interfaces brodcasted by ROS
     rosInterfacesData: {}, // Holds all interfaces data brodcasted by ROS
+    runningPing: false, // Holds the state of the ping
+    pingData : {}, // Holds the ping data
   }
 
   const rosChartColor = {
@@ -307,6 +309,16 @@
           global.rosInterfacesData[`${payload.name} - Upload`].append(Date.now(), (Number(payload["rx-bits-per-second"]))/(1000*1000));
         }
         
+        break;
+      case "cli_ping":
+        if(!global.runningPing){
+          global.runningPing = true;
+          const linePING = new TimeSeries();
+          global.rosInterfacesData[`Ping`] = linePING;
+          chart.addTimeSeries(global.rosInterfacesData[`Ping`], { strokeStyle: 'rgba(255, 128, 92, 1)', tooltipLabel: `Ping` });
+        }
+
+        global.rosInterfacesData[`Ping`].append(Date.now(), (Number(payload["ping"])));
         break;
       default:
         console.log("Unknown message com: " + com);

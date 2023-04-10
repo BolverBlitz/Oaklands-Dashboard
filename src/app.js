@@ -6,6 +6,7 @@ const app = new HyperExpress.Server();
 const joi = require('joi');
 const Unifi = require('node-unifi');
 const RouterOSInterface = require('../lib/routerOS');
+const PingInterface = require('../lib/ping');
 const { log } = require('../lib/logger');
 
 const ros = new RouterOSInterface(
@@ -13,6 +14,8 @@ const ros = new RouterOSInterface(
   process.env.RouterOS_User || 'admin',
   process.env.RouterOS_Password || '',
 );
+
+const ping = new PingInterface();
 
 const [Unifi_Url, Unifi_Port, Unifi_Email, Unifi_Password] = [process.env.Unifi_URL, process.env.Unifi_Port, process.env.Unifi_Email, process.env.Unifi_Password];
 
@@ -63,12 +66,6 @@ app.get('/cpuload', (req, res) => {
   res.send("Hello");
 });
 
-/*
-{
-  "com": "subscribe_rosTraffic",
-  "payload": "Hello World"
-}
-*/
 app.ws('/realtime', {
   idle_timeout: 60
 }, (ws) => {
@@ -76,6 +73,12 @@ app.ws('/realtime', {
     //console.log(msg);
     const { com, payload } = JSON.parse(msg);
     // Subscribe to ROS Traffic
+    /*
+    {
+      "com": "subscribe_rosTraffic",
+      "payload": "Hello World"
+    }
+    */
     if (com === 'subscribe_rosTraffic') {
       ros.getInterfaceList().then((interfaces) => {
         const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && interface.type === 'ether' });
@@ -90,6 +93,25 @@ app.ws('/realtime', {
           }).catch((error) => {
             log.error(error);
           });
+        }
+      }).catch((error) => {
+        log.error(error);
+      });
+    }
+
+    /*
+    {
+      "com": "subscribe_ping",
+      "payload": "Hello World"
+    }
+    */
+    if(com === 'subscribe_ping'){
+      ping.ping(ws).then((wasclosed) => {
+        // true is returned once the connection was closed. If error occured, error is returned
+        if (wasclosed === true) {
+          log.info('ping: Connection closed');
+        } else {
+          log.error(wasclosed)
         }
       }).catch((error) => {
         log.error(error);
