@@ -5,6 +5,7 @@
     "joi": "^17.6.0",
     "node-routeros": "^1.6.9",
     "node-unifi": "^2.1.0",
+    "tree-kill": "^1.2.2",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v20.10.0"
   }
 }

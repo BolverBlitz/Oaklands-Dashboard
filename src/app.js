@@ -81,7 +81,7 @@ app.ws('/realtime', {
     */
     if (com === 'subscribe_rosTraffic') {
       ros.getInterfaceList().then((interfaces) => {
-        const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && interface.type === 'ether' });
+        const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && (interface.type === 'ether' || (process.env.graphwifi == "true" && interface.type === 'wlan')) });
         for (let i = 0; i < activeEthInterfaces.length; i++) {
           ros.getInterfaceStats(activeEthInterfaces[i].name, ws).then((wasclosed) => {
             // true is returned once the connection was closed. If error occured, error is returned

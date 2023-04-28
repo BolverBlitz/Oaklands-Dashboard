@@ -194,7 +194,8 @@
     pingData : {}, // Holds the ping data
   }
 
-  const rosChartColor = {
+  const rosChartColor = (interfaceName) => {
+    const colorMapping = {
     "ether1_WAN - Upload": "rgba(255, 255, 255, 0.5)",
     "ether1_WAN - Download": "rgba(255, 255, 255, 1)",
     "ether10 - AP Annex - Upload": "rgba(255, 0, 0, 0.5)",
@@ -208,6 +209,12 @@
     "ether9 - Ciaran - Upload": "rgba(0, 158, 255, 0.5)",
     "ether9 - Ciaran - Download": "rgba(0, 158, 255, 1)",
   }
+  if(colorMapping[interfaceName]) {
+    return colorMapping[interfaceName];
+  } else {
+  return "rgba(255, 255, 255, 0.5)";
+  }
+}
 
   function replaceWAN(name) {
     if (name.toLowerCase().includes('wan')){
@@ -272,8 +279,8 @@
           const lineUP = new TimeSeries();
           global.rosInterfacesData[`${payload.name} - Download`] = lineDOWN;
           global.rosInterfacesData[`${payload.name} - Upload`] = lineUP;
-          chart.addTimeSeries(global.rosInterfacesData[`${payload.name} - Download`], { strokeStyle: rosChartColor[`${payload.name} - Download`], tooltipLabel: `D: ${replaceWAN(payload.name)}` });
-          chart.addTimeSeries(global.rosInterfacesData[`${payload.name} - Upload`], { strokeStyle: rosChartColor[`${payload.name} - Upload`], fillStyle:'rgba(0,0,0,0.10)', tooltipLabel: `U: ${replaceWAN(payload.name)}` });
+          chart.addTimeSeries(global.rosInterfacesData[`${payload.name} - Download`], { strokeStyle: rosChartColor(`${payload.name} - Download`), tooltipLabel: `D: ${replaceWAN(payload.name)}` });
+          chart.addTimeSeries(global.rosInterfacesData[`${payload.name} - Upload`], { strokeStyle: rosChartColor(`${payload.name} - Upload`), fillStyle:'rgba(0,0,0,0.10)', tooltipLabel: `U: ${replaceWAN(payload.name)}` });
 
           // Order the interfaces by alphabetical order but ignore first 3 chars in chart.seriesSet[0].options.tooltipLabe.
           // Put RaspberyPI and Ciaran at the end of the list
