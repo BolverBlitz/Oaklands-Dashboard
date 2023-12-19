@@ -227,7 +227,7 @@
     const duration = document.getElementById("unifi_duration").value;
     const download = document.getElementById("unifi_download").value;
     const upload = document.getElementById("unifi_upload").value;
-    const requestUrl = `${baseUrl}genCode?duration=${duration}&download=${download}&upload=${upload}`;
+    const requestUrl = `${baseUrl}api/v1/unifi/genCode?duration=${duration}&download=${download}&upload=${upload}`;
     const response = httpGet(requestUrl);
     switch (response.code) {
       case 200:

@@ -1,9 +1,20 @@
 require('dotenv').config();
-const app = require('./src/app');
+require('module-alias/register')
 const { log } = require('./lib/logger');
+
+process.log = log;
 
 const port = parseInt(process.env.PORT, 10) || 80
 
-app.listen(port)
-.then((socket) => log.info(`Listening on port: ${port}`))
-.catch((error) => log.error(`Failed to start webserver on: ${port}`));
+setTimeout(() => {
+    const app = require('@src/app');
+
+    setTimeout(() => {
+        if (process.env.ExtraErrorWebDelay > 0) {
+            process.log.system(`Webserver was delayed by ${process.env.ExtraErrorWebDelay || 500}ms beause of a error.`);
+        }
+        app.listen(port)
+            .then((socket) => process.log.system(`Listening on port: ${port}`))
+            .catch((error) => process.log.error(`Failed to start webserver on: ${port}\nError: ${error}`));
+    }, process.env.ExtraErrorWebDelay || 500);
+}, process.env.GlobalWaitTime || 100);

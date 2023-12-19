@@ -1,10 +1,35 @@
 {
+  "name": "oaklands-dashboard",
+  "description": "Simple high performance overview dashboard for oaklands house.  \r  Slow routes are cached automaticly to ensure a fast response time.\r  Most routes can deliver 10K+ requests per second even on a single raspberry pi core with minimal usage and memory footprint.",
+  "version": "0.0.2",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "update": "npx npm-check-updates -u"
+  },
+  "author": "BolverBlitz",
+  "license": "MIT",
+  "_moduleAliases": {
+    "@root": ".",
+    "@src": "./src",
+    "@lib": "./lib",
+    "@api": "./api",
+    "@middleware": "./middleware",
+    "@config": "./config"
+  },
   "dependencies": {
-    "dotenv": "^16.0.2",
-    "hyper-express": "^6.4.5",
-    "joi": "^17.6.0",
+    "dotenv": "^16.3.1",
+    "error-stack-parser": "^2.1.4",
+    "express-useragent": "^1.0.15",
+    "hyper-express": "^6.14.5",
+    "ioredis": "^5.3.2",
+    "joi": "^17.11.0",
+    "megahash": "^1.0.5",
+    "module-alias": "^2.2.3",
     "node-routeros": "^1.6.9",
-    "node-unifi": "^2.1.0",
-    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.10.0"
+    "node-unifi": "^2.5.1"
   }
 }
