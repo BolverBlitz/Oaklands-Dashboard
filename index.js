@@ -4,6 +4,10 @@ const { log } = require('./lib/logger');
 
 process.log = log;
 
+const event = require('node:events');
+
+process.eventbus = new event.EventEmitter();
+
 const port = parseInt(process.env.PORT, 10) || 80
 
 setTimeout(() => {

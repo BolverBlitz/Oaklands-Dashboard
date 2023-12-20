@@ -1,16 +1,34 @@
 const fs = require('fs');
 const path = require('path');
 const HyperExpress = require('hyper-express');
-const RouterOSInterface = require('@lib/routerOS');
+const ejs = require('ejs');
 
 const app = new HyperExpress.Server({
   fast_buffers: process.env.HE_FAST_BUFFERS == 'false' ? false : true || false,
 });
 
+const pageContent = {
+  imports: [],
+  html: [],
+  js: [],
+};
+
+process.eventbus.on('addImports', (imports) => {
+  pageContent.imports.push(imports);
+});
+
+process.eventbus.on('addHtml', (html) => {
+  pageContent.html.push(html);
+});
+
+process.eventbus.on('addJs', (js) => {
+  pageContent.js.push(js);
+});
+
 /* Server Static Files */
 app.get('/', (req, res) => {
   res.header('Content-Type', 'text/html');
-  res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', 'index.html')));
+  res.send(ejs.render(fs.readFileSync(path.join(__dirname, '..', 'www-public', 'index.ejs'), 'utf8'), { pageContent }));
 })
 
 app.get('/js/*', (req, res) => {

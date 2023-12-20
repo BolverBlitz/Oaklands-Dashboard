@@ -1,0 +1,165 @@
+<head>
+    <title>Oaklands Dashboard</title>
+    <% pageContent.imports.forEach(function(importPath) { %>
+      <script src="<%= importPath %>"></script>
+    <% }); %>
+    <style>
+      body {
+        background-color: #21361d;
+      }
+  
+      /* Flexbox */
+      .flex-container {
+        display: flex;
+        margin-top: 4%;
+        flex-direction: column;
+        flex-wrap: wrap-reverse;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+      }
+      .flex-container2 {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap-reverse;
+          justify-content: center;
+          align-items: center;
+          align-content: center;
+      }
+      .flex-items:nth-child(1) {
+        display: block;
+        flex-grow: 0;
+        flex-shrink: 1;
+        flex-basis: auto;
+        align-self: auto;
+        order: 0;
+      }
+      .flex-items:nth-child(2) {
+        display: block;
+        flex-grow: 0;
+        flex-shrink: 1;
+        flex-basis: auto;
+        align-self: auto;
+        order: 0;
+      }
+      .flex-items:nth-child(3) {
+        display: block;
+        flex-grow: 0;
+        flex-shrink: 1;
+        flex-basis: auto;
+        align-self: auto;
+        order: 0;
+      }
+      .flex-items:nth-child(4) {
+        display: block;
+        flex-grow: 0;
+        flex-shrink: 1;
+        flex-basis: auto;
+        align-self: auto;
+        order: 0;
+      }
+      .flex-items:nth-child(5) {
+        display: block;
+        flex-grow: 0;
+        flex-shrink: 1;
+        flex-basis: auto;
+        align-self: auto;
+        order: 0;
+      }
+      .buttonList {
+          background-color: #4CAF50; /* Green */
+          border: none;
+          color: white;
+          padding: 15px 32px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+      }
+      .buttonList:hover {
+          cursor: pointer;
+          background-color: rgb(59, 92, 61);
+      }
+  
+      /* Dropdown Button */
+      .dropbtn {
+        background-color: #04AA6D;
+        color: white;
+        padding: 16px;
+        font-size: 16px;
+        border: none;
+      }
+      .select-wrapper {
+          position: relative;
+          user-select: none;
+          width: 100%;
+      }
+      .select {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          border-width: 0 2px 0 2px;
+          border-style: solid;
+          border-color: #394a6d;
+      }
+      .select__trigger {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 22px;
+          font-size: 20px;
+          font-weight: 300;
+          color: #3b3b3b;
+          height: 60px;
+          line-height: 60px;
+          background: #ffffff;
+          cursor: pointer;
+          border-width: 2px 0 2px 0;
+          border-style: solid;
+          border-color: #394a6d;
+      }
+  
+      /* Smoothie Charts */
+      div.smoothie-chart-tooltip {
+        background: #444;
+        padding: 1em;
+        margin-top: 20px;
+        font-family: consolas;
+        color: white;
+        font-size: 10px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  
+  <div class="flex-container">
+    <div class="flex-items"> <!-- Vertical Flex Item 1 - Logo --->
+      <img src="./logo" alt="Oaklands Logo" style="height: 220px; width: 500px; overflow: hidden; margin-bottom: 20px;"></img>
+    </div>
+    <div class="flex-items"> <!-- Vertical Flex Item 2 - Webpage List (Horizontal) --->
+        <div class="flex-container2">
+        <div class="flex-items"><button class="buttonList" style="border:rgb(60, 59, 92); border-style: solid; border-width: thin;" onclick="window.open('https://unifi.oaklandshome.de')">Unifi</button></div>
+        <div class="flex-items"><button class="buttonList" style="border:rgb(60, 59, 92); border-style: solid; border-width: thin;" onclick="window.open('https://guest.oaklandshome.de')">Guest</button></div>
+        <div class="flex-items"><button class="buttonList" style="border:rgb(60, 59, 92); border-style: solid; border-width: thin;" onclick="window.open('https://intwiki.oaklandshome.de')">Wiki</button></div>
+        <div class="flex-items"><button class="buttonList" style="border:rgb(60, 59, 92); border-style: solid; border-width: thin;" onclick="window.open('https://pihole.oaklandshome.de')">PI-Hole</button></div>
+      </div>
+    </div>
+    <% if (pageContent.html.length > 0) { %>
+        <% pageContent.html.forEach(function(htmlContent) { %>
+          <%- htmlContent %>
+        <% }); %>
+      <% } %>
+  </div>
+  
+  <script>
+    const getUrl = window.location;
+    const baseUrl = getUrl.protocol + "//" + getUrl.host + "/";
+
+    // Dynamically include JavaScript content from pageContent.js
+    <% if (pageContent.js.length > 0) { %>
+        <% pageContent.js.forEach(function(jsContent) { %>
+        <%- jsContent %>
+        <% }); %>
+    <% } %>
+  </script>
