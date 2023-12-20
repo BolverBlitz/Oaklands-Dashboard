@@ -254,7 +254,7 @@
   if (window.location.protocol === "https:") {
     ws_protocol = "wss://";
   }
-  const ws = new WebSocket(ws_protocol + window.location.host + "/realtime");
+  const ws = new WebSocket(`${ws_protocol}${window.location.host}/api/v1/realtime`);
 
   ws.onopen = function() {
     ws.send(JSON.stringify({"com": "subscribe_rosTraffic","payload": ""}));
@@ -305,6 +305,12 @@
         } else {
           global.rosInterfacesData[`${payload.name} - Download`].append(Date.now(), (Number(payload["tx-bits-per-second"]))/(1000*1000));
           global.rosInterfacesData[`${payload.name} - Upload`].append(Date.now(), (Number(payload["rx-bits-per-second"]))/(1000*1000));
+        }
+
+        // Make sure the data array isn´t getting to big
+        if (global.rosInterfacesData[`${payload.name} - Download`].data.length > 250) {
+          global.rosInterfacesData[`${payload.name} - Download`].data.shift();
+          global.rosInterfacesData[`${payload.name} - Upload`].data.shift();
         }
         
         break;

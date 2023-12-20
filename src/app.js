@@ -23,53 +23,9 @@ app.get('/logo', (req, res) => {
   res.send(fs.readFileSync(path.join(__dirname, '..', 'www-public', 'logo.png')));
 });
 
-const ros = new RouterOSInterface(
-  process.env.RouterOS_IP || '192.168.88.1',
-  process.env.RouterOS_User || 'admin',
-  process.env.RouterOS_Password || '',
-);
-
 /* API */
 const apiv1 = require('@api');
 app.use('/api/v1', apiv1);
-/*
-{
-  "com": "subscribe_rosTraffic",
-  "payload": "Hello World"
-}
-*/
-app.ws('/realtime', {
-  idle_timeout: 60
-}, (ws) => {
-  ws.on('message', (msg) => {
-    //console.process.log(msg);
-    const { com, payload } = JSON.parse(msg);
-    // Subscribe to ROS Traffic
-    if (com === 'subscribe_rosTraffic') {
-      ros.getInterfaceList().then((interfaces) => {
-        const activeEthInterfaces = interfaces.filter((interface) => { return interface.running === 'true' && interface.type === 'ether' });
-        for (let i = 0; i < activeEthInterfaces.length; i++) {
-          ros.getInterfaceStats(activeEthInterfaces[i].name, ws).then((wasclosed) => {
-            // true is returned once the connection was closed. If error occured, error is returned
-            if (wasclosed === true) {
-              process.log.info('rosTraffic: Connection closed');
-            } else {
-              process.log.error(wasclosed)
-            }
-          }).catch((error) => {
-            process.log.error(error);
-          });
-        }
-      }).catch((error) => {
-        process.log.error(error);
-      });
-    }
-
-    // Subscribe to Docker Stats
-  });
-  ws.on('open', () => process.log.info('WS: Connection opened'));
-  ws.on('close', () => process.log.info('WS: Connection closed'));
-});
 
 /* Handlers */
 app.set_error_handler((req, res, error) => {
