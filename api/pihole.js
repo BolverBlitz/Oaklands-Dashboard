@@ -32,7 +32,6 @@ router.post('/disable', limiter(), async (req, res) => {
     try {
         res.status(200);
         // Ifnore SSL errors
-        console.log(`${process.env.PIHOLE_URL}/admin/api.php?disable=${process.env.PIHOLE_BLOCK_TIME * 60 }&auth=${process.env.PIHOLE_API_TOKEN}`)
         await fetch(`${process.env.PIHOLE_URL}/admin/api.php?disable=${process.env.PIHOLE_BLOCK_TIME * 60 }&auth=${process.env.PIHOLE_API_TOKEN}`, {
             method: 'GET'
         });
