@@ -57,9 +57,7 @@ fs.readdir("./api", function (err, filenames) {
 /* Load in all the plugins */
 fs.readdir("./api", function (err, filenames) {
   filenames.remove('index.js');
-  console.log(filenames)
   filenames = sortFilenames(filenames, process.env.PLUGIN_ORDER.split(','));
-  console.log(filenames)
   for (i = 0; i < filenames.length; i++) {
     if (filenames[i].startsWith("disabled.")) {
       process.log.warning(`Skipped API Plugin ${filenames[i].slice(9, filenames[i].length - 3)} because its disabled`);

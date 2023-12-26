@@ -128,3 +128,4 @@ dist
 
 # Env Templates
 oaklands.env
+store/pihole.json
