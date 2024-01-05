@@ -161,12 +161,6 @@
         <div class="flex-items"><button class="buttonList" style="border:rgb(60, 59, 92); border-style: solid; border-width: thin;" onclick="window.open('https://pihole.oaklandshome.de')">PI-Hole</button></div>
       </div>
     </div>
-    <div class="flex-items"> <!-- Vertical Flex Item 2 - Webpage List (Horizontal) --->
-      <br>
-      <div class="flex-container2">
-      <div class="flex-items"><button class="blockButton" id="piholeblock" style="border:rgb(60, 59, 92); border-style: solid; border-width: thin;" onclick="requestPiHoleBlock()">PiHole</button></div>
-    </div>
-  </div>
     <% if (pageContent.html.length > 0) { %>
         <% pageContent.html.forEach(function(htmlContent) { %>
           <%- htmlContent %>
@@ -177,94 +171,6 @@
   <script>
     const getUrl = window.location;
     const baseUrl = getUrl.protocol + "//" + getUrl.host + "/";
-
-    let countDownID = null;
-
-    // Load current PiHole status when page is loaded
-    window.onload = function() {
-      fetch(baseUrl + "api/v1/pihole")
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
-          if (data.disabled_until_timestamp < Date.now()) {
-            document.getElementById("piholeblock").innerHTML = "PiHole: Enabled";
-          } else {
-            // Make a countdown timer and make button light red
-            document.getElementById("piholeblock").innerHTML = `PiHole: Disabled for ${secondsToHms((data.disabled_until_timestamp - Date.now() )/1000)}`;
-            document.getElementById("piholeblock").style.backgroundColor = "#c43030";
-
-            // Update timer every second
-            countDownID = setInterval(() => {
-              document.getElementById("piholeblock").innerHTML = `PiHole: Disabled for ${secondsToHms((data.disabled_until_timestamp - Date.now() )/1000)}`;
-              if (data.disabled_until_timestamp < Date.now()) {
-                clearInterval(countDownID);
-                document.getElementById("piholeblock").innerHTML = "PiHole: Enabled";
-                document.getElementById("piholeblock").style.backgroundColor = "#4CAF50";
-              }
-            }, 1000);
-          }
-        });
-    }
-
-    // Send POST request to PiHole API to block all ads
-    const requestPiHoleBlock = () => {
-      clearInterval(countDownID);
-      fetch(baseUrl + "api/v1/pihole/disable", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
-          if (data.disabled_until_timestamp < Date.now()) {
-            document.getElementById("piholeblock").innerHTML = "PiHole: Enabled";
-          } else {
-            // Make a countdown timer and make button light red
-            document.getElementById("piholeblock").innerHTML = `PiHole: Disabled for ${secondsToHms((data.disabled_until_timestamp - Date.now() )/1000)}`;
-            document.getElementById("piholeblock").style.backgroundColor = "#c43030";
-
-            // Update timer every second
-            countDownID = setInterval(() => {
-              document.getElementById("piholeblock").innerHTML = `PiHole: Disabled for ${secondsToHms((data.disabled_until_timestamp - Date.now() )/1000)}`;
-              if (data.disabled_until_timestamp < Date.now()) {
-                clearInterval(countDownID);
-                document.getElementById("piholeblock").innerHTML = "PiHole: Enabled";
-                document.getElementById("piholeblock").style.backgroundColor = "#4CAF50";
-              }
-            }, 1000);
-          }
-        });
-    }
-
-    // Function to convert seconds to human readable time
-    const secondsToHms = (seconds) => {
-      if (!seconds) return "0s";
-    
-      let duration = seconds;
-      let hours = duration / 3600;
-      duration = duration % (3600);
-    
-      let min = parseInt(duration / 60);
-      duration = duration % (60);
-    
-      let sec = parseInt(duration);
-    
-      if (sec < 10) {
-        sec = `0${sec}`;
-      }
-      if (min < 10) {
-        min = `0${min}`;
-      }
-      if (parseInt(hours, 10) > 0) {
-        return `${parseInt(hours, 10)}h ${min}m ${sec}s`;
-      } else if (min == 0) {
-        return `${sec}s`;
-      } else {
-        return `${min}m ${sec}s`;
-      }
-    }
 
     // Dynamically include JavaScript content from pageContent.js
     <% if (pageContent.js.length > 0) { %>
