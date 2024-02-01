@@ -72,14 +72,14 @@ const html = {
         "ether1_WAN - Download": "rgba(255, 255, 255, 1)",
         "ether10 - AP Annex - Upload": "rgba(255, 0, 0, 0.5)",
         "ether10 - AP Annex - Download": "rgba(255, 0, 0, 1)",
-        "ether7 - APLivingRoom - Upload": "rgba(255, 255, 0, 0.5)",
-        "ether7 - APLivingRoom - Download": "rgba(255, 255, 0, 1)",
+        "ether7 - Study - Upload": "rgba(255, 255, 0, 0.5)",
+        "ether7 - Study - Download": "rgba(255, 255, 0, 1)",
         "ether8 - AP Sunroom - Upload": "rgba(249, 105, 14, 0.5)",
         "ether8 - AP Sunroom - Download": "rgba(249, 105, 14, 1)",
         "ether6 - RaspberyPI - Upload": "rgba(153, 50, 204, 0.5)",
         "ether6 - RaspberyPI - Download": "rgba(153, 50, 204, 1)",
-        "ether9 - Ciaran - Upload": "rgba(0, 158, 255, 0.5)",
-        "ether9 - Ciaran - Download": "rgba(0, 158, 255, 1)",
+        "ether9 - Upstairs - Upload": "rgba(0, 158, 255, 0.5)",
+        "ether9 - Upstairs - Download": "rgba(0, 158, 255, 1)",
       }
     
       function replaceWAN(name) {
